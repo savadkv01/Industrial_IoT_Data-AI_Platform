@@ -37,6 +37,7 @@ data/
 *.parquet
 *.feather
 *.duckdb
+*.ndjson
 mlruns/
 mlartifacts/
 models/*.pkl

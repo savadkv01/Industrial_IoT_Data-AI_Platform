@@ -1,0 +1,27 @@
+[project]
+name = "data-generator"
+version = "0.1.0"
+description = "Synthetic IoT telemetry generator for the Industrial IoT Data & AI Platform (Phase 2)."
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.7",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+kafka = ["confluent-kafka>=2.4"]
+dev = ["pytest>=8.2", "ruff>=0.5"]
+
+[project.scripts]
+iot-telemetry-gen = "data_generator.main:run"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["data_generator*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

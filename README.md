@@ -158,8 +158,8 @@ python -m data_generator.main --machines 500 --rate 5
 
 | Phase | Focus | Status |
 |---|---|:--:|
-| 1 | System design & SLAs | 🟡 In progress |
-| 2 | Synthetic data generation | ⚪ Planned |
+| 1 | System design & SLAs | � Done |
+| 2 | Synthetic data generation | 🟢 Done |
 | 3 | Streaming pipeline (Kafka → Spark) | ⚪ Planned |
 | 4 | Lakehouse (medallion) | ⚪ Planned |
 | 5 | Feature engineering (Feast) | ⚪ Planned |
