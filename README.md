@@ -132,16 +132,26 @@ A standalone diagram and SLA targets live in [docs/architecture/architecture.md]
 git clone https://github.com/<your-username>/industrial-iot-ai-platform.git
 cd industrial-iot-ai-platform
 
-# 2. Configure environment
+# 2. Create & activate a virtual environment
+python -m venv .venv
+# Windows (PowerShell):
+.\.venv\Scripts\Activate.ps1
+# macOS / Linux:
+# source .venv/bin/activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Configure environment
 cp .env.example .env
 
-# 3. Bring up the platform
+# 5. Bring up the platform
 docker compose up -d
 
-# 4. Generate telemetry
+# 6. Generate telemetry
 python -m data_generator.main --machines 500 --rate 5
 
-# 5. Explore the UIs
+# 7. Explore the UIs
 #   Kafka UI    → http://localhost:8080
 #   MinIO       → http://localhost:9001
 #   Airflow     → http://localhost:8081
@@ -151,6 +161,7 @@ python -m data_generator.main --machines 500 --rate 5
 ```
 
 > Full per-phase setup instructions are in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> Functional/business acceptance tests per phase are in [docs/TEST_CASES.md](docs/TEST_CASES.md).
 
 ---
 

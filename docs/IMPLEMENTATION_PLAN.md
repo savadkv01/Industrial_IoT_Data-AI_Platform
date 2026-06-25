@@ -84,4 +84,6 @@ bring up only the Docker services a phase needs.
 - One Python package per domain; promote notebook logic into packages.
 - All long-running logic logs metrics for Prometheus.
 - Config via `.env` (never commit secrets — see `.env.example`).
+- Use a project **virtual environment** (`.venv`) for all Python work; never install into the system interpreter.
 - Lint with `ruff`, test with `pytest` before each commit.
+- Track behavioural acceptance per phase in [TEST_CASES.md](TEST_CASES.md) (separate from unit/syntax tests).

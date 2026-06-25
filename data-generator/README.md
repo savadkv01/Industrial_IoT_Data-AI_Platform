@@ -32,6 +32,10 @@ data-generator/
 ```bash
 cd data-generator
 
+# (from repo root, activate the shared virtual environment first)
+#   Windows:  .\.venv\Scripts\Activate.ps1
+#   Unix:     source .venv/bin/activate
+
 # Smoke test to stdout
 python -m data_generator.main --machines 10 --rate 5 --duration 2 --sink stdout
 
