@@ -1,0 +1,75 @@
+# ───────────────────────── Python ─────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# ───────────────────────── Env / secrets ─────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials.json
+
+# ───────────────────────── Notebooks ─────────────────────────
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# ───────────────────────── Data & artifacts ─────────────────────────
+data/
+*.csv
+*.parquet
+*.feather
+*.duckdb
+mlruns/
+mlartifacts/
+models/*.pkl
+models/*.joblib
+models/*.pt
+checkpoints/
+spark-warehouse/
+metastore_db/
+derby.log
+
+# ───────────────────────── Docker / infra volumes ─────────────────────────
+**/volumes/
+minio-data/
+postgres-data/
+kafka-data/
+grafana-data/
+prometheus-data/
+
+# ───────────────────────── IDE / OS ─────────────────────────
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+
+# ───────────────────────── Logs & temp ─────────────────────────
+*.log
+logs/
+tmp/
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/

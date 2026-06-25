@@ -1,0 +1,42 @@
+# Core platform requirements (pin exact versions per phase as you build).
+# Install:  pip install -r requirements.txt
+
+# ── Data generation & utilities ──
+numpy>=1.26
+pandas>=2.2
+faker>=25.0
+pydantic>=2.7
+python-dotenv>=1.0
+
+# ── Streaming ──
+kafka-python>=2.0
+confluent-kafka>=2.4
+
+# ── Spark / Lakehouse ──
+pyspark>=3.5
+delta-spark>=3.2
+duckdb>=1.0
+s3fs>=2024.6
+
+# ── Feature store ──
+feast>=0.40
+
+# ── ML / modeling ──
+scikit-learn>=1.5
+xgboost>=2.1
+# torch>=2.3            # uncomment for autoencoder/anomaly models
+
+# ── MLOps ──
+mlflow>=2.14
+evidently>=0.4
+
+# ── Serving ──
+fastapi>=0.111
+uvicorn[standard]>=0.30
+
+# ── Observability ──
+prometheus-client>=0.20
+
+# ── Dev / quality ──
+pytest>=8.2
+ruff>=0.5
