@@ -111,8 +111,8 @@ A standalone diagram and SLA targets live in [docs/architecture/architecture.md]
 .
 ├── data-generator/        # Phase 2 — synthetic telemetry + failure simulation
 ├── streaming/             # Phase 3 — Kafka producers & Spark streaming jobs
-├── lakehouse/             # Phase 4 — bronze/silver/gold Delta jobs
-├── feature-engineering/   # Phase 5 — Feast feature definitions
+├── lakehouse/             # Phase 4 — silver/gold Delta jobs + data quality
+├── feature-engineering/   # Phase 5 — time-series features & Feast feature store
 ├── ml/                    # Phase 6-7 — training pipelines & MLOps
 ├── serving/               # Phase 9 — FastAPI inference service
 ├── orchestration/         # Airflow DAGs
@@ -172,8 +172,8 @@ python -m data_generator.main --machines 500 --rate 5
 | 1 | System design & SLAs | 🟢 Done |
 | 2 | Synthetic data generation | 🟢 Done |
 | 3 | Streaming pipeline (Kafka → Spark) | 🟢 Done |
-| 4 | Lakehouse (medallion) | ⚪ Planned |
-| 5 | Feature engineering (Feast) | ⚪ Planned |
+| 4 | Lakehouse (medallion) | 🟢 Done |
+| 5 | Feature engineering (Feast) | 🟢 Done |
 | 6 | ML model building | ⚪ Planned |
 | 7 | MLOps pipeline | ⚪ Planned |
 | 8 | Real-time AI | ⚪ Planned |

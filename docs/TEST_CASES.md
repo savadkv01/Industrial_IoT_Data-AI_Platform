@@ -46,11 +46,11 @@ Status: ⬜ Not run · ✅ Pass · ❌ Fail · ⏭️ Blocked
 
 | ID | Scenario | Given | When | Then | Prio | Status |
 |----|----------|-------|------|------|:----:|:------:|
-| TC-4.1 | Bronze is immutable | Bronze data | Silver job runs | Bronze is never mutated; corrections happen in Silver | 🔴 | ⬜ |
-| TC-4.2 | Deduplication | Duplicate (machine_id, ts) rows in Bronze | Silver processes | Silver has exactly one row per (machine_id, ts) | 🔴 | ⬜ |
-| TC-4.3 | Type & range enforcement | Raw strings/out-of-range values | Silver validates | Types cast correctly; out-of-range values quarantined or clipped per rule | 🟠 | ⬜ |
+| TC-4.1 | Bronze is immutable | Bronze data | Silver job runs | Bronze is never mutated; corrections happen in Silver | 🔴 | ✅ |
+| TC-4.2 | Deduplication | Duplicate (machine_id, ts) rows in Bronze | Silver processes | Silver has exactly one row per (machine_id, ts) | 🔴 | ✅ |
+| TC-4.3 | Type & range enforcement | Raw strings/out-of-range values | Silver validates | Types cast correctly; out-of-range values quarantined or clipped per rule | 🟠 | ✅ |
 | TC-4.4 | Data quality gate | A batch failing DQ thresholds (e.g. >5% nulls) | Silver runs | Batch flagged/failed; alert raised; clean data still flows | 🔴 | ⬜ |
-| TC-4.5 | Gold aggregation correctness | Known input window | Gold builds rolling stats | Aggregates (5m/1h/24h mean/std) match hand-computed values | 🟠 | ⬜ |
+| TC-4.5 | Gold aggregation correctness | Known input window | Gold builds rolling stats | Aggregates (5m/1h/24h mean/std) match hand-computed values | 🟠 | ✅ |
 | TC-4.6 | Partitioning | Gold/Silver tables | Queried by date + machine | Partition pruning occurs; query scans only relevant partitions | 🟡 | ⬜ |
 | TC-4.7 | Schema evolution | A new additive sensor column | Ingested | Pipeline absorbs it via mergeSchema without breaking | 🟠 | ⬜ |
 | TC-4.8 | Query access | Gold tables | Queried via Trino & DuckDB | Same row counts/aggregates returned by both engines | 🟡 | ⬜ |
@@ -62,13 +62,13 @@ Status: ⬜ Not run · ✅ Pass · ❌ Fail · ⏭️ Blocked
 
 | ID | Scenario | Given | When | Then | Prio | Status |
 |----|----------|-------|------|------|:----:|:------:|
-| TC-5.1 | Point-in-time correctness | A training entity at time T | `get_historical_features` | Only features with event time ≤ T are returned (no leakage) | 🔴 | ⬜ |
-| TC-5.2 | Window feature accuracy | Known sensor series | Rolling features computed | Rolling mean/std/min/max match manual calculation | 🟠 | ⬜ |
-| TC-5.3 | Lag feature alignment | A sensor stream | Lag-N feature requested | Value equals the reading N steps earlier for that machine | 🟠 | ⬜ |
-| TC-5.4 | Online/offline parity | Same entity + timestamp | Online vs offline fetch | Feature values match between online and offline stores | 🔴 | ⬜ |
+| TC-5.1 | Point-in-time correctness | A training entity at time T | `get_historical_features` | Only features with event time ≤ T are returned (no leakage) | 🔴 | ✅ |
+| TC-5.2 | Window feature accuracy | Known sensor series | Rolling features computed | Rolling mean/std/min/max match manual calculation | 🟠 | ✅ |
+| TC-5.3 | Lag feature alignment | A sensor stream | Lag-N feature requested | Value equals the reading N steps earlier for that machine | 🟠 | ✅ |
+| TC-5.4 | Online/offline parity | Same entity + timestamp | Online vs offline fetch | Feature values match between online and offline stores | 🔴 | ✅ |
 | TC-5.5 | TTL / staleness | A stale feature beyond TTL | Online lookup | Stale feature is not served | 🟡 | ⬜ |
 | TC-5.6 | Event time, not ingestion time | Late-arriving data | Feature built | Feature keyed on telemetry event time, not arrival time | 🟠 | ⬜ |
-| TC-5.7 | Materialization completeness | Feature views applied | `materialize` runs | All entities have online features post-materialization | 🟡 | ⬜ |
+| TC-5.7 | Materialization completeness | Feature views applied | `materialize` runs | All entities have online features post-materialization | 🟡 | ✅ |
 
 ---
 

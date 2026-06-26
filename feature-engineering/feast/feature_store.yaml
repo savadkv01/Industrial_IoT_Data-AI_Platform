@@ -1,0 +1,8 @@
+project: industrial_iot_platform
+registry: data/registry.db
+provider: local
+online_store:
+  type: sqlite
+  path: data/online.db
+offline_store:
+  type: file
