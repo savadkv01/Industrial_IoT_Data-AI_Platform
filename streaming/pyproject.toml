@@ -1,0 +1,18 @@
+[project]
+name = "streaming"
+version = "0.1.0"
+description = "Kafka -> Spark Structured Streaming ingestion into Bronze Delta (Phase 3)."
+requires-python = ">=3.11"
+dependencies = [
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+kafka = ["confluent-kafka>=2.4"]
+spark = ["pyspark>=3.5", "delta-spark>=3.2"]
+dev = ["pytest>=8.2", "ruff>=0.5"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# repo root (for `streaming.*`) and the generator package (for `data_generator.*`).
+pythonpath = ["..", "../data-generator"]

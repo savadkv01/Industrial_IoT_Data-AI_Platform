@@ -10,20 +10,31 @@ name: industrial-iot-ai-platform
 services:
   # ────────────── Ingestion ──────────────
   kafka:
-    image: bitnami/kafka:3.7
+    image: apache/kafka:3.7.1
     container_name: kafka
     ports:
-      - "9092:9092"
+      - "9092:9092"   # internal listener (advertised as kafka:9092)
+      - "9094:9094"   # host listener (advertised as localhost:9094)
     environment:
-      KAFKA_CFG_NODE_ID: 0
-      KAFKA_CFG_PROCESS_ROLES: controller,broker
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
-    volumes:
-      - kafka-data:/bitnami/kafka
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
     networks: [platform]
 
   kafka-ui:
@@ -50,6 +61,29 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
     volumes:
       - minio-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "mc ready local || curl -f http://localhost:9000/minio/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks: [platform]
+
+  # ────────────── Lakehouse bucket bootstrap ──────────────
+  createbuckets:
+    image: minio/mc:latest
+    container_name: createbuckets
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin};
+      mc mb --ignore-existing local/${S3_BUCKET_LAKEHOUSE:-lakehouse};
+      mc anonymous set public local/${S3_BUCKET_LAKEHOUSE:-lakehouse};
+      echo 'lakehouse bucket ready';
+      exit 0;
+      "
     networks: [platform]
 
   # ────────────── Metadata DB ──────────────
@@ -64,6 +98,32 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-metadata}
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    networks: [platform]
+
+  # ────────────── Stream processing (Phase 3) ──────────────
+  spark-streaming:
+    build: ./infra/docker/spark
+    image: iiot/spark:3.5.1
+    container_name: spark-streaming
+    depends_on:
+      kafka:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
+    environment:
+      # In-network address is fixed (not host-overridable) so the broker is always reachable.
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TELEMETRY_TOPIC: ${KAFKA_TELEMETRY_TOPIC:-iot.telemetry}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_BUCKET_LAKEHOUSE: ${S3_BUCKET_LAKEHOUSE:-lakehouse}
+    volumes:
+      - ./streaming:/opt/app/streaming
+      - ivy-cache:/opt/spark/.ivy2
+    command: ["bash", "/opt/app/streaming/spark/submit_ingest.sh"]
     networks: [platform]
 
   # ────────────── Experiment tracking ──────────────
@@ -117,10 +177,10 @@ services:
   #   networks: [platform]
 
 volumes:
-  kafka-data:
   minio-data:
   postgres-data:
   grafana-data:
+  ivy-cache:
 
 networks:
   platform:

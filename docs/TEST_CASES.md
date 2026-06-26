@@ -31,13 +31,13 @@ Status: ⬜ Not run · ✅ Pass · ❌ Fail · ⏭️ Blocked
 
 | ID | Scenario | Given | When | Then | Prio | Status |
 |----|----------|-------|------|------|:----:|:------:|
-| TC-3.1 | No data loss | X messages produced to Kafka | Streaming job consumes them | Bronze row count == X (no loss) | 🔴 | ⬜ |
-| TC-3.2 | Exactly-once on restart | Job mid-stream | Job is killed and restarted from checkpoint | No duplicate rows in Bronze; no gaps | 🔴 | ⬜ |
+| TC-3.1 | No data loss | X messages produced to Kafka | Streaming job consumes them | Bronze row count == X (no loss) | 🔴 | ✅ |
+| TC-3.2 | Exactly-once on restart | Job mid-stream | Job is killed and restarted from checkpoint | No duplicate rows in Bronze; no gaps | 🔴 | ✅ |
 | TC-3.3 | Ordering per machine | Records for one machine | Read back from Bronze | Event-time order preserved within each `machine_id` partition | 🟠 | ⬜ |
 | TC-3.4 | Late data handled | Out-of-order/late events | Watermark window applies | Late events accepted within watermark; dropped beyond it as designed | 🟠 | ⬜ |
 | TC-3.5 | Ingestion latency SLA | Steady stream | Measured end-to-end | Event → Bronze < 10 s p95 | 🟠 | ⬜ |
 | TC-3.6 | Malformed payload isolation | A corrupt/invalid message | Consumed | Bad record quarantined/logged, pipeline keeps running | 🔴 | ⬜ |
-| TC-3.7 | Ingestion metadata present | Any Bronze row | Inspected | `_ingest_ts`, `_topic`, `_partition`, `_offset` populated | 🟡 | ⬜ |
+| TC-3.7 | Ingestion metadata present | Any Bronze row | Inspected | `_ingest_ts`, `_topic`, `_partition`, `_offset` populated | 🟡 | ✅ |
 | TC-3.8 | Backpressure stability | Producer faster than consumer | Lag builds | `maxOffsetsPerTrigger` bounds batches; job stays stable, lag recovers | 🟠 | ⬜ |
 
 ---
