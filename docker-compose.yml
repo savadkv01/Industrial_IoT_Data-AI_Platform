@@ -126,6 +126,57 @@ services:
     command: ["bash", "/opt/app/streaming/spark/submit_ingest.sh"]
     networks: [platform]
 
+  # ────────────── Lakehouse batch jobs (Phase 4) ──────────────
+  # Run manually: docker compose run --rm spark-silver
+  # or:           docker compose run --rm spark-gold
+  spark-silver:
+    build: ./infra/docker/spark
+    image: iiot/spark:3.5.1
+    container_name: spark-silver
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
+    environment:
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_BUCKET_LAKEHOUSE: ${S3_BUCKET_LAKEHOUSE:-lakehouse}
+      DQ_MAX_NULL_RATE: ${DQ_MAX_NULL_RATE:-0.05}
+      DQ_MAX_RANGE_VIOLATION_RATE: ${DQ_MAX_RANGE_VIOLATION_RATE:-0.01}
+      SPARK_SHUFFLE_PARTITIONS: ${SPARK_SHUFFLE_PARTITIONS:-8}
+    volumes:
+      - ./lakehouse:/opt/app/lakehouse
+      - ./streaming:/opt/app/streaming
+      - ivy-cache:/opt/spark/.ivy2
+    command: ["bash", "/opt/app/lakehouse/silver/submit_silver.sh"]
+    networks: [platform]
+
+  spark-gold:
+    build: ./infra/docker/spark
+    image: iiot/spark:3.5.1
+    container_name: spark-gold
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
+    environment:
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_BUCKET_LAKEHOUSE: ${S3_BUCKET_LAKEHOUSE:-lakehouse}
+      SPARK_SHUFFLE_PARTITIONS: ${SPARK_SHUFFLE_PARTITIONS:-8}
+    volumes:
+      - ./lakehouse:/opt/app/lakehouse
+      - ./streaming:/opt/app/streaming
+      - ivy-cache:/opt/spark/.ivy2
+    command: ["bash", "/opt/app/lakehouse/gold/submit_gold.sh"]
+    networks: [platform]
+
   # ────────────── Experiment tracking ──────────────
   # mlflow:
   #   build: ./infra/docker/mlflow

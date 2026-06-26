@@ -10,7 +10,8 @@ RUN mkdir -p /opt/app /opt/spark/.ivy2 \
     && chown -R spark:spark /opt/app /opt/spark/.ivy2
 
 # Python runtime deps used by the job (Spark/PySpark already present).
-RUN python3 -m pip install --no-cache-dir python-dotenv==1.0.1
+# delta-spark provides DeltaTable Python API (used by lakehouse Phase 4).
+RUN python3 -m pip install --no-cache-dir python-dotenv==1.0.1 delta-spark==3.2.0
 
 ENV PYTHONPATH=/opt/app \
     HOME=/opt/spark

@@ -1,0 +1,28 @@
+[project]
+name = "lakehouse"
+version = "0.1.0"
+description = "Bronze → Silver → Gold medallion lakehouse on Delta Lake + MinIO (Phase 4)."
+requires-python = ">=3.11"
+dependencies = [
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+spark = ["pyspark>=3.5", "delta-spark>=3.2"]
+query = ["duckdb>=0.10"]
+dev = ["pytest>=8.2", "ruff>=0.5"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["lakehouse*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# repo root for `lakehouse.*`; parent for `streaming.*` (field parity tests).
+pythonpath = [".", ".."]
+
+[tool.ruff]
+line-length = 100
