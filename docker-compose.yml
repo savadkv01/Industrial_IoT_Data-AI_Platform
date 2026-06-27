@@ -81,7 +81,8 @@ services:
       mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin};
       mc mb --ignore-existing local/${S3_BUCKET_LAKEHOUSE:-lakehouse};
       mc anonymous set public local/${S3_BUCKET_LAKEHOUSE:-lakehouse};
-      echo 'lakehouse bucket ready';
+      mc mb --ignore-existing local/${S3_BUCKET_MLFLOW:-mlflow};
+      echo 'lakehouse + mlflow buckets ready';
       exit 0;
       "
     networks: [platform]
@@ -98,6 +99,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-metadata}
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      # Creates the mlflow + airflow databases on first boot (Phase 7).
+      - ./infra/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks: [platform]
 
   # ────────────── Stream processing (Phase 3) ──────────────
@@ -177,23 +180,60 @@ services:
     command: ["bash", "/opt/app/lakehouse/gold/submit_gold.sh"]
     networks: [platform]
 
-  # ────────────── Experiment tracking ──────────────
-  # mlflow:
-  #   build: ./infra/docker/mlflow
-  #   container_name: mlflow
-  #   ports: ["5000:5000"]
-  #   depends_on: [postgres, minio]
-  #   networks: [platform]
+  # ────────────── Experiment tracking (Phase 7) ──────────────
+  mlflow:
+    build: ./infra/docker/mlflow
+    image: iiot/mlflow:2.16.2
+    container_name: mlflow
+    ports: ["5000:5000"]
+    environment:
+      MLFLOW_BACKEND_STORE_URI: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/${MLFLOW_DB:-mlflow}
+      MLFLOW_ARTIFACTS_DESTINATION: s3://${S3_BUCKET_MLFLOW:-mlflow}/
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    depends_on:
+      postgres:
+        condition: service_started
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:5000/health').status==200 else 1)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks: [platform]
 
-  # ────────────── Orchestration ──────────────
-  # airflow:
-  #   build: ./infra/docker/airflow
-  #   container_name: airflow
-  #   ports: ["8081:8080"]
-  #   depends_on: [postgres]
-  #   volumes:
-  #     - ./orchestration/dags:/opt/airflow/dags
-  #   networks: [platform]
+  # ────────────── Orchestration (Phase 7) ──────────────
+  # Single-node Airflow (LocalExecutor) running the ML retraining DAG.
+  # Bring up with:  docker compose up -d airflow
+  airflow:
+    build: ./infra/docker/airflow
+    image: iiot/airflow:2.9.3
+    container_name: airflow
+    ports: ["8081:8080"]
+    environment:
+      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR:-LocalExecutor}
+      AIRFLOW__CORE__LOAD_EXAMPLES: ${AIRFLOW__CORE__LOAD_EXAMPLES:-False}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/${AIRFLOW_DB:-airflow}
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      ML_OFFLINE_FEATURES: /opt/airflow/ml_src/feature-engineering/data/offline/telemetry_features.parquet
+    depends_on:
+      postgres:
+        condition: service_started
+      mlflow:
+        condition: service_started
+    volumes:
+      - ./orchestration/dags:/opt/airflow/dags
+      - ./ml:/opt/airflow/ml_src/ml:ro
+      - ./feature-engineering:/opt/airflow/ml_src/feature-engineering:ro
+    command: ["bash", "-c", "airflow db migrate && (airflow users create --username admin --password admin --firstname a --lastname b --role Admin --email admin@example.com || true) && airflow scheduler & exec airflow webserver"]
+    networks: [platform]
 
   # ────────────── Query engine ──────────────
   # trino:

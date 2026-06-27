@@ -40,6 +40,8 @@ data/
 *.ndjson
 mlruns/
 mlartifacts/
+mlflow.db
+*.mlflow.db
 models/*.pkl
 models/*.joblib
 models/*.pt

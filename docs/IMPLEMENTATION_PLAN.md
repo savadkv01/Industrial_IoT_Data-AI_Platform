@@ -5,6 +5,7 @@ key deliverables, the matching agent skill, and an exit checklist. Build increme
 bring up only the Docker services a phase needs.
 
 > Source spec: [system-design.md](../system-design.md) · Architecture: [architecture.md](architecture/architecture.md)
+> Data model design (BI & AI): [DATA_MODELING.md](DATA_MODELING.md)
 
 ---
 
@@ -39,13 +40,19 @@ bring up only the Docker services a phase needs.
 ## Phase 6 — ML Model Building
 **Goal:** Predictive maintenance, anomaly detection, battery health models.
 - Skill: `mlops-pipeline`
-- Exit: Baseline metrics logged (AUC/F1/RMSE) with no time leakage.
+- Deliverables: `ml/` package — `predictive_maintenance`, `anomaly_detection`,
+  `battery_health` training pipelines + `common` (time-aware splits, metrics, MLflow).
+- Exit: Baseline metrics logged (AUC/F1/RMSE) with no time leakage. ✅
 
 ## Phase 7 — ML Pipeline (MLOps)
 **Goal:** MLflow tracking + registry, retraining, batch vs real-time inference.
 - Skill: `mlops-pipeline`
 - Services: `mlflow`, `airflow`.
-- Exit: Models versioned/staged in registry; retrain DAG runs.
+- Deliverables: `ml/pipeline.py` (train→log→register→promote), `ml/common/registry.py`
+  (alias-based gated promotion), `ml/common/tasks.py` (shared task specs),
+  `ml/inference/batch.py` (batch scoring from the registry), `orchestration/dags/train_models.py`
+  (daily retrain DAG), `mlflow` + `airflow` docker services.
+- Exit: Models versioned/staged in registry; retrain DAG runs. ✅
 
 ## Phase 8 — Real-time AI
 **Goal:** Streaming anomaly detection: Kafka → Spark → model → alert.

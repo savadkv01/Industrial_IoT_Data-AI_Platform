@@ -162,6 +162,7 @@ python -m data_generator.main --machines 500 --rate 5
 
 > Full per-phase setup instructions are in [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 > Functional/business acceptance tests per phase are in [docs/TEST_CASES.md](docs/TEST_CASES.md).
+> BI & AI data model design rationale is in [docs/DATA_MODELING.md](docs/DATA_MODELING.md).
 
 ---
 
@@ -174,7 +175,7 @@ python -m data_generator.main --machines 500 --rate 5
 | 3 | Streaming pipeline (Kafka → Spark) | 🟢 Done |
 | 4 | Lakehouse (medallion) | 🟢 Done |
 | 5 | Feature engineering (Feast) | 🟢 Done |
-| 6 | ML model building | ⚪ Planned |
+| 6 | ML model building | 🟢 Done |
 | 7 | MLOps pipeline | ⚪ Planned |
 | 8 | Real-time AI | ⚪ Planned |
 | 9 | Model serving | ⚪ Planned |
