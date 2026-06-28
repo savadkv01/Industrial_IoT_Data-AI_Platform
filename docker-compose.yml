@@ -129,6 +129,42 @@ services:
     command: ["bash", "/opt/app/streaming/spark/submit_ingest.sh"]
     networks: [platform]
 
+  spark-alerting:
+    build: ./infra/docker/spark
+    image: iiot/spark:3.5.1
+    container_name: spark-alerting
+    depends_on:
+      kafka:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
+      mlflow:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TELEMETRY_TOPIC: ${KAFKA_TELEMETRY_TOPIC:-iot.telemetry}
+      KAFKA_ALERTS_TOPIC: ${KAFKA_ALERTS_TOPIC:-iot.alerts}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_BUCKET_LAKEHOUSE: ${S3_BUCKET_LAKEHOUSE:-lakehouse}
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      ANOMALY_MODEL_ALIAS: ${ANOMALY_MODEL_ALIAS:-production}
+      ANOMALY_ALERT_THRESHOLD: ${ANOMALY_ALERT_THRESHOLD:-0.5}
+      ALERTS_TRIGGER_INTERVAL: ${ALERTS_TRIGGER_INTERVAL:-10 seconds}
+      ALERTS_COOLDOWN: ${ALERTS_COOLDOWN:-60 seconds}
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - ./streaming:/opt/app/streaming
+      - ./ml:/opt/app/ml
+      - ivy-cache:/opt/spark/.ivy2
+    command: ["bash", "/opt/app/streaming/spark/submit_alerts.sh"]
+    networks: [platform]
+
   # ────────────── Lakehouse batch jobs (Phase 4) ──────────────
   # Run manually: docker compose run --rm spark-silver
   # or:           docker compose run --rm spark-gold
@@ -183,7 +219,7 @@ services:
   # ────────────── Experiment tracking (Phase 7) ──────────────
   mlflow:
     build: ./infra/docker/mlflow
-    image: iiot/mlflow:2.16.2
+    image: iiot/mlflow:3.14.0
     container_name: mlflow
     ports: ["5000:5000"]
     environment:

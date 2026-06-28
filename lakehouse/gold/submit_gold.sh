@@ -13,7 +13,7 @@ PACKAGES="io.delta:delta-spark_2.12:${DELTA_VERSION}"
 PACKAGES="${PACKAGES},org.apache.hadoop:hadoop-aws:${HADOOP_AWS_VERSION}"
 PACKAGES="${PACKAGES},com.amazonaws:aws-java-sdk-bundle:${AWS_SDK_VERSION}"
 
-exec /opt/spark/bin/spark-submit \
+exec "${SPARK_HOME:-/usr/local}/bin/spark-submit" \
   --master "local[*]" \
   --packages "${PACKAGES}" \
   --conf spark.jars.ivy=/opt/spark/.ivy2 \

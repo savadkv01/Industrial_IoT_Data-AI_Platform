@@ -38,6 +38,16 @@ class StreamingConfig:
     trigger_interval: str = os.getenv("STREAM_TRIGGER_INTERVAL", "5 seconds")
     watermark_delay: str = os.getenv("STREAM_WATERMARK_DELAY", "2 minutes")
 
+    # Phase 8 real-time anomaly detection
+    alerts_topic: str = os.getenv("KAFKA_ALERTS_TOPIC", "iot.alerts")
+    alerts_trigger_interval: str = os.getenv("ALERTS_TRIGGER_INTERVAL", "10 seconds")
+    alerts_checkpoint_name: str = os.getenv(
+        "ALERTS_CHECKPOINT_NAME", "realtime_anomaly_alerts"
+    )
+    alerts_cooldown: str = os.getenv("ALERTS_COOLDOWN", "60 seconds")
+    anomaly_threshold: float = float(os.getenv("ANOMALY_ALERT_THRESHOLD", "0.5"))
+    model_alias: str = os.getenv("ANOMALY_MODEL_ALIAS", "production")
+
     @property
     def bronze_path(self) -> str:
         return f"s3a://{self.bucket}/bronze/telemetry"
@@ -49,3 +59,11 @@ class StreamingConfig:
     @property
     def checkpoint_path(self) -> str:
         return f"s3a://{self.bucket}/_checkpoints/bronze_telemetry"
+
+    @property
+    def alerts_path(self) -> str:
+        return f"s3a://{self.bucket}/silver/alerts/anomaly_alerts"
+
+    @property
+    def alerts_checkpoint_path(self) -> str:
+        return f"s3a://{self.bucket}/_checkpoints/{self.alerts_checkpoint_name}"

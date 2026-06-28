@@ -43,6 +43,8 @@ def test_bronze_paths_are_s3a():
     assert cfg.bronze_path == "s3a://lakehouse/bronze/telemetry"
     assert cfg.quarantine_path.startswith("s3a://lakehouse/")
     assert cfg.checkpoint_path.startswith("s3a://lakehouse/")
+    assert cfg.alerts_path == "s3a://lakehouse/silver/alerts/anomaly_alerts"
+    assert cfg.alerts_checkpoint_path.startswith("s3a://lakehouse/")
 
 
 def test_config_defaults_are_sane():
@@ -50,3 +52,5 @@ def test_config_defaults_are_sane():
     assert cfg.num_partitions >= 1
     assert cfg.max_offsets_per_trigger > 0
     assert "second" in cfg.trigger_interval or "minute" in cfg.trigger_interval
+    assert cfg.anomaly_threshold >= 0.0
+    assert cfg.alerts_topic

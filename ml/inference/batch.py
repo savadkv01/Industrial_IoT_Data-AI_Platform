@@ -44,7 +44,14 @@ def load_model(task: str, alias: str | None = None, cfg: MLConfig | None = None)
         tracking_uri=cfg.mlflow_tracking_uri, registry_uri=cfg.mlflow_tracking_uri
     )
     version = client.get_model_version_by_alias(spec.registered_model(cfg), alias)
-    uri = f"runs:/{version.run_id}/model"
+    # MLflow 3.x uses LoggedModel storage: source is `models:/m-<id>`.
+    # Use source directly when available (works with both MinIO and file:// backends),
+    # falling back to the run artifact URI for older registrations.
+    source = getattr(version, "source", None)
+    if source and source.startswith("models:/m-"):
+        uri = source
+    else:
+        uri = f"runs:/{version.run_id}/model"
     if spec.flavor == "xgboost":
         return mlflow.xgboost.load_model(uri)
     return mlflow.sklearn.load_model(uri)

@@ -57,7 +57,13 @@ bring up only the Docker services a phase needs.
 ## Phase 8 — Real-time AI
 **Goal:** Streaming anomaly detection: Kafka → Spark → model → alert.
 - Skill: `streaming-pipeline`, `mlops-pipeline`
-- Exit: Anomalies flagged in near real-time and emitted to an alert topic.
+- Services: `kafka`, `minio`, `mlflow`.
+- Deliverables: `streaming/spark/anomaly_alerts.py` (Structured Streaming job that scores
+  `iot.telemetry` micro-batches with the aliased MLflow model and emits to `iot.alerts` +
+  a Delta alert table), `streaming/spark/submit_alerts.sh`, `spark-alerting` compose service,
+  per-machine cooldown throttling, and `AnomalyModelCache` for low-latency model hot-swaps.
+- Exit: Anomalies flagged in near real-time (~20s end-to-end) and emitted to the `iot.alerts`
+  topic + `s3a://lakehouse/silver/alerts/anomaly_alerts` Delta table. ✅
 
 ## Phase 9 — Model Serving
 **Goal:** FastAPI inference service with low-latency model loading.
