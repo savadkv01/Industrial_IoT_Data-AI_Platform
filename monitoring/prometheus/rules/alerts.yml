@@ -1,0 +1,35 @@
+# Prometheus alerting rules — Phase 10.
+# Thresholds tie platform SLAs and model-drift signals to alerts. Wire to Alertmanager
+# (not deployed by default); Grafana can also alert directly off these series.
+groups:
+  - name: serving-slo
+    rules:
+      # p95 prediction latency over 5m breaches the 500ms SLA.
+      - alert: ServingLatencyP95High
+        expr: histogram_quantile(0.95, sum(rate(serving_request_latency_seconds_bucket[5m])) by (le, task)) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p95 serving latency for task {{ $labels.task }}"
+          description: "p95 latency > 500ms for 5m."
+
+      # Sustained error responses from the serving API.
+      - alert: ServingErrorRateHigh
+        expr: sum(rate(serving_requests_total{status="error"}[5m])) by (task) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Serving errors for task {{ $labels.task }}"
+          description: "The serving API is returning errors over the last 10m."
+
+      # The serving target stopped responding to scrapes.
+      - alert: ServingDown
+        expr: up{job="serving"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Model-serving API is down"
+          description: "Prometheus cannot scrape the serving /metrics endpoint."

@@ -1,0 +1,33 @@
+[project]
+name = "monitoring"
+version = "0.1.0"
+description = "Observability for the Industrial IoT platform — Prometheus, Grafana, and Evidently drift (Phase 10)."
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.2",
+    "numpy>=1.26",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+# Evidently powers the human-facing HTML drift reports. The core drift metrics in
+# ``monitoring.drift.metrics`` are pure-numpy and do NOT require it, so the package
+# stays importable (and testable) even when Evidently is absent.
+drift = ["evidently>=0.4"]
+# BI export: read Gold Delta via DuckDB, write the analytics schema to Postgres.
+bi = ["duckdb>=1.0", "sqlalchemy>=2.0", "psycopg2-binary>=2.9"]
+dev = ["pytest>=8.2", "ruff>=0.5"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["monitoring*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", ".."]
+
+[tool.ruff]
+line-length = 100

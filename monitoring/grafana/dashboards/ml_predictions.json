@@ -1,0 +1,101 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 0,
+  "schemaVersion": 39,
+  "tags": ["iiot", "phase10", "ai", "predictions"],
+  "title": "Predictive Maintenance (AI)",
+  "uid": "iiot-ai-predictions",
+  "timezone": "browser",
+  "time": { "from": "now-30d", "to": "now" },
+  "refresh": "5m",
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Machines at Risk (failure prob > 0.5)",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "analytics-pg" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^at_risk$/", "values": false } },
+      "targets": [
+        { "refId": "A", "format": "table", "rawQuery": true, "rawSql": "SELECT COUNT(*) AS at_risk FROM analytics.predictions_latest WHERE failure_probability > 0.5;", "datasource": { "type": "postgres", "uid": "analytics-pg" } }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Highest Failure Probability",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "analytics-pg" },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "decimals": 2, "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 0.75 } ] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^max_prob$/", "values": false } },
+      "targets": [
+        { "refId": "A", "format": "table", "rawQuery": true, "rawSql": "SELECT MAX(failure_probability) AS max_prob FROM analytics.predictions_latest;", "datasource": { "type": "postgres", "uid": "analytics-pg" } }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Scored Machines",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "analytics-pg" },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^n$/", "values": false } },
+      "targets": [
+        { "refId": "A", "format": "table", "rawQuery": true, "rawSql": "SELECT COUNT(*) AS n FROM analytics.predictions_latest;", "datasource": { "type": "postgres", "uid": "analytics-pg" } }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Lowest Predicted Battery SoH",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "analytics-pg" },
+      "fieldConfig": { "defaults": { "decimals": 3, "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "yellow", "value": 0.6 }, { "color": "green", "value": 0.8 } ] } } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^min_soh$/", "values": false } },
+      "targets": [
+        { "refId": "A", "format": "table", "rawQuery": true, "rawSql": "SELECT MIN(battery_soh_prediction) AS min_soh FROM analytics.predictions_latest;", "datasource": { "type": "postgres", "uid": "analytics-pg" } }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "At-Risk Leaderboard (latest scores per machine)",
+      "type": "table",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 5 },
+      "datasource": { "type": "postgres", "uid": "analytics-pg" },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "failure_probability" }, "properties": [ { "id": "unit", "value": "percentunit" }, { "id": "decimals", "value": 2 }, { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "gradient" } }, { "id": "max", "value": 1 }, { "id": "min", "value": 0 }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 0.75 } ] } } ] },
+          { "matcher": { "id": "byName", "options": "anomaly_score" }, "properties": [ { "id": "decimals", "value": 3 } ] },
+          { "matcher": { "id": "byName", "options": "battery_soh_prediction" }, "properties": [ { "id": "decimals", "value": 3 }, { "id": "custom.cellOptions", "value": { "type": "color-background" } }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "yellow", "value": 0.6 }, { "color": "green", "value": 0.8 } ] } } ] }
+        ]
+      },
+      "targets": [
+        { "refId": "A", "format": "table", "rawQuery": true, "rawSql": "SELECT machine_id, failure_probability, anomaly_score, battery_soh_prediction, last_scored_at FROM analytics.predictions_latest ORDER BY failure_probability DESC NULLS LAST;", "datasource": { "type": "postgres", "uid": "analytics-pg" } }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Fleet Avg Failure Probability Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "datasource": { "type": "postgres", "uid": "analytics-pg" },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "decimals": 2 } },
+      "targets": [
+        { "refId": "A", "format": "time_series", "rawQuery": true, "rawSql": "SELECT event_timestamp AS \"time\", AVG(score) AS avg_failure_prob FROM analytics.predictions WHERE task = 'predictive_maintenance' GROUP BY 1 ORDER BY 1;", "datasource": { "type": "postgres", "uid": "analytics-pg" } }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Fleet Avg Anomaly Score Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "datasource": { "type": "postgres", "uid": "analytics-pg" },
+      "targets": [
+        { "refId": "A", "format": "time_series", "rawQuery": true, "rawSql": "SELECT event_timestamp AS \"time\", AVG(score) AS avg_anomaly_score FROM analytics.predictions WHERE task = 'anomaly_detection' GROUP BY 1 ORDER BY 1;", "datasource": { "type": "postgres", "uid": "analytics-pg" } }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+# Grafana datasource provisioning — Phase 10.
+# Auto-registers Prometheus as the default datasource on container start.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+
+  # Analytics/BI datasource — the platform Postgres `analytics` schema populated by
+  # `monitoring.analytics.export_bi` (Gold lakehouse + ML predictions).
+  - name: Analytics
+    uid: analytics-pg
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    user: platform
+    database: metadata
+    isDefault: false
+    editable: true
+    secureJsonData:
+      password: platform
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1600
+      timescaledb: false

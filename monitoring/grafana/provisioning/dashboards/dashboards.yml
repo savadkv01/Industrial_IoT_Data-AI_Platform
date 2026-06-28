@@ -1,0 +1,15 @@
+# Grafana dashboard provisioning — Phase 10.
+# Loads every dashboard JSON under the mounted dashboards directory on start.
+apiVersion: 1
+
+providers:
+  - name: iiot-dashboards
+    orgId: 1
+    folder: Industrial IoT
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

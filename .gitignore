@@ -50,6 +50,11 @@ spark-warehouse/
 metastore_db/
 derby.log
 
+# ───────────────────────── Monitoring (Phase 10) ─────────────────────────
+# Generated drift artifacts and the captured reference snapshot.
+monitoring/drift/reports/
+monitoring/drift/reference/
+
 # ───────────────────────── Docker / infra volumes ─────────────────────────
 **/volumes/
 minio-data/

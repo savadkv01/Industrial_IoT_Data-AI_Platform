@@ -259,6 +259,18 @@ services:
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       ML_OFFLINE_FEATURES: /opt/airflow/ml_src/feature-engineering/data/offline/telemetry_features.parquet
+      MONITORING_CURRENT_FEATURES: /opt/airflow/ml_src/feature-engineering/data/offline/telemetry_features.parquet
+      MONITORING_REFERENCE_FEATURES: /opt/airflow/ml_src/monitoring/drift/reference/telemetry_features.parquet
+      MONITORING_REPORTS_DIR: /opt/airflow/ml_src/monitoring/drift/reports
+      PROMETHEUS_PUSHGATEWAY: ${PROMETHEUS_PUSHGATEWAY:-}
+      # BI analytics export (Gold + predictions → Postgres `analytics` schema for Grafana).
+      MINIO_ENDPOINT: http://minio:9000
+      S3_BUCKET_LAKEHOUSE: ${S3_BUCKET_LAKEHOUSE:-lakehouse}
+      ANALYTICS_PG_HOST: postgres
+      ANALYTICS_PG_DB: ${POSTGRES_DB:-metadata}
+      ANALYTICS_PG_USER: ${POSTGRES_USER:-platform}
+      ANALYTICS_PG_PASSWORD: ${POSTGRES_PASSWORD:-platform}
+      MONITORING_PREDICTIONS_DIR: /opt/airflow/ml_src/ml/predictions
     depends_on:
       postgres:
         condition: service_started
@@ -268,6 +280,7 @@ services:
       - ./orchestration/dags:/opt/airflow/dags
       - ./ml:/opt/airflow/ml_src/ml:ro
       - ./feature-engineering:/opt/airflow/ml_src/feature-engineering:ro
+      - ./monitoring:/opt/airflow/ml_src/monitoring
     command: ["bash", "-c", "airflow db migrate && (airflow users create --username admin --password admin --firstname a --lastname b --role Admin --email admin@example.com || true) && airflow scheduler & exec airflow webserver"]
     networks: [platform]
 
@@ -307,26 +320,40 @@ services:
     networks: [platform]
 
   # ────────────── Observability ──────────────
-  # prometheus:
-  #   image: prom/prometheus:latest
-  #   container_name: prometheus
-  #   ports: ["9090:9090"]
-  #   volumes:
-  #     - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-  #   networks: [platform]
+  # Bring up with:  docker compose up -d prometheus grafana
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports: ["9090:9090"]
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    networks: [platform]
 
-  # grafana:
-  #   image: grafana/grafana:latest
-  #   container_name: grafana
-  #   ports: ["3000:3000"]
-  #   volumes:
-  #     - grafana-data:/var/lib/grafana
-  #   networks: [platform]
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports: ["3000:3000"]
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on: [prometheus]
+    networks: [platform]
 
 volumes:
   minio-data:
   postgres-data:
   grafana-data:
+  prometheus-data:
   ivy-cache:
 
 networks:
