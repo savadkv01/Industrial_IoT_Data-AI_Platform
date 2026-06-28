@@ -68,8 +68,16 @@ bring up only the Docker services a phase needs.
 ## Phase 9 — Model Serving
 **Goal:** FastAPI inference service with low-latency model loading.
 - Skill: `model-serving-fastapi`
-- Services: `serving`.
-- Exit: `/predict` endpoints < 100 ms p95; OpenAPI docs available.
+- Services: `serving`, `mlflow`.
+- Deliverables: `serving/app/` FastAPI service (`main.py`, `models.py`, `schemas.py`,
+  `metrics.py`, `config.py`) that warm-loads the aliased MLflow models into an in-memory
+  `ModelCache`, serves `POST /predict/{maintenance,battery,anomaly}` (echoing model
+  name/alias/version), `GET /health`, `POST /reload`, and Prometheus `GET /metrics`;
+  `serving/Dockerfile` (repo-root build context bundling the shared `ml` package) and a
+  real `serving` compose service on port 8000.
+- Exit: `/predict` endpoints serve cached models (no per-request load); OpenAPI docs at
+  `/docs`; malformed payloads rejected with 422; every prediction carries its serving
+  model version. ✅
 
 ## Phase 10 — Monitoring
 **Goal:** System + data + model drift monitoring.

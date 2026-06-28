@@ -278,13 +278,33 @@ services:
   #   ports: ["8082:8080"]
   #   networks: [platform]
 
-  # ────────────── Model serving ──────────────
-  # serving:
-  #   build: ./serving
-  #   container_name: serving
-  #   ports: ["8000:8000"]
-  #   depends_on: [mlflow]
-  #   networks: [platform]
+  # ────────────── Model serving (Phase 9) ──────────────
+  # FastAPI inference service. Build context is the repo root so the image can
+  # bundle the shared `ml` package.  Bring up with:  docker compose up -d serving
+  serving:
+    build:
+      context: .
+      dockerfile: serving/Dockerfile
+    image: iiot/serving:0.1.0
+    container_name: serving
+    ports: ["8000:8000"]
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      SERVING_MODEL_ALIAS: ${SERVING_MODEL_ALIAS:-production}
+      SERVING_WARM_START: ${SERVING_WARM_START:-true}
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks: [platform]
 
   # ────────────── Observability ──────────────
   # prometheus:

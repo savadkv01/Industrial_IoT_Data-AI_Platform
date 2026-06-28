@@ -115,10 +115,10 @@ Status: ⬜ Not run · ✅ Pass · ❌ Fail · ⏭️ Blocked
 | ID | Scenario | Given | When | Then | Prio | Status |
 |----|----------|-------|------|------|:----:|:------:|
 | TC-9.1 | Prediction latency SLA | A `/predict` request | Served | p95 latency < 100 ms | 🔴 | ⬜ |
-| TC-9.2 | Correct prediction contract | A valid feature payload | Posted | Response includes score/probability + model version | 🔴 | ⬜ |
-| TC-9.3 | Input validation | A malformed payload | Posted | 422 returned with a clear error; no crash | 🟠 | ⬜ |
-| TC-9.4 | Health/readiness | Service starting | `/health` polled | Reports not-ready until model loaded, then ready | 🟠 | ⬜ |
-| TC-9.5 | Model version traceability | Any prediction | Returned | Serving model version is identifiable for audit | 🟡 | ⬜ |
+| TC-9.2 | Correct prediction contract | A valid feature payload | Posted | Response includes score/probability + model version | 🔴 | ✅ |
+| TC-9.3 | Input validation | A malformed payload | Posted | 422 returned with a clear error; no crash | 🟠 | ✅ |
+| TC-9.4 | Health/readiness | Service starting | `/health` polled | Reports not-ready until model loaded, then ready | 🟠 | ✅ |
+| TC-9.5 | Model version traceability | Any prediction | Returned | Serving model version is identifiable for audit | 🟡 | ✅ |
 | TC-9.6 | Online feature integration | A request needing live features | Served | Features fetched from Feast and used in scoring | 🟡 | ⬜ |
 | TC-9.7 | Concurrency | Many simultaneous requests | Load applied | No errors; latency degrades gracefully | 🟠 | ⬜ |
 

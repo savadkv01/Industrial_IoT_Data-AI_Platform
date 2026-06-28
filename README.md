@@ -176,9 +176,9 @@ python -m data_generator.main --machines 500 --rate 5
 | 4 | Lakehouse (medallion) | 🟢 Done |
 | 5 | Feature engineering (Feast) | 🟢 Done |
 | 6 | ML model building | 🟢 Done |
-| 7 | MLOps pipeline | ⚪ Planned |
-| 8 | Real-time AI | ⚪ Planned |
-| 9 | Model serving | ⚪ Planned |
+| 7 | MLOps pipeline | 🟢 Done |
+| 8 | Real-time AI | 🟢 Done |
+| 9 | Model serving | 🟢 Done |
 | 10 | Monitoring & drift | ⚪ Planned |
 | 11 | System design interview prep | ⚪ Planned |
 | 12 | Production incident simulations | ⚪ Planned |
